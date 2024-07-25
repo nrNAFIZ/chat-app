@@ -33,7 +33,7 @@ app.post('/api/messages', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/index.html'));
+  res.sendFile(path.join(__dirname, 'public/indexfile.html'));
 });
 
 // Start the server
