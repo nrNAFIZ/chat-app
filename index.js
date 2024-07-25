@@ -6,6 +6,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const MESSAGES_FILE = path.join(__dirname, 'public/messages.json');
 
+console.log(MESSAGES_FILE);
+
 // Middlewares
 app.use(express.json());
 app.use(express.static('public'));
@@ -28,6 +30,10 @@ app.post('/api/messages', (req, res) => {
   messages.push({ username, message, timestamp: new Date().toISOString() });
   fs.writeFileSync(MESSAGES_FILE, JSON.stringify(messages));
   res.status(201).json({ success: true });
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // Start the server
