@@ -1,15 +1,14 @@
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const LIMIT = 30;
 var messages = [];
 
 // Middlewares
 app.use(express.json());
-app.use(express.static('public'));
 
 // Fetch messages
 app.get('/api/messages', (req, res) => {
@@ -20,14 +19,17 @@ app.get('/api/messages', (req, res) => {
 app.post('/api/messages', (req, res) => {
   const { username, message } = req.body;
   messages.push({ username, message });
+  if(messages.length > LIMIT) {
+    messages.shift();
+  }
   res.status(201).json({ success: true });
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/indexfile.html'));
+  res.sendFile(path.join(__dirname, 'indexfile.html'));
 });
 
 // Start the server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port: ${PORT}`);
 });

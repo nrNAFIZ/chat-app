@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat App</title>
+  <style>
+    body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f4f4f4;
+}
+
+#chat-container {
+  width: 100%;
+  max-width: 600px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: block;
+  height: 80vh;
+}
+
+#username-container {
+  padding: 16px;
+  display: block;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+#username-container input {
+  padding: 10px;
+  margin-bottom: 10px;
+  width: 100%;
+  max-width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+#username-container button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#username-container button:hover {
+  background-color: #0056b3;
+}
+
+#messages-container {
+  height: calc(100% - 112px); /* Adjust height considering username and form */
+  overflow-y: auto;
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-bottom: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+#messages {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.message {
+  padding: 8px;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  max-width: 80%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  clear: both;
+}
+
+.sent {
+  background-color: #d1e7dd; /* Light green for sent messages */
+  float: right;
+  text-align: right;
+  margin-left: 20%;
+}
+
+.received {
+  background-color: #f8d7da; /* Light red for received messages */
+  float: left;
+  text-align: left;
+  margin-right: 20%;
+}
+
+.message p {
+  margin: 0;
+}
+
+.message span {
+  display: block;
+  color: #555;
+}
+
+.sent span {
+  color: #006400; /* Dark green for sent username */
+  font-size: 0.9em;
+}
+
+.received span {
+  color: #8b0000; /* Dark red for received username */
+  font-size: 0.9em;
+}
+
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+#message-form {
+  padding: 16px;
+  display: block;
+  border-top: 1px solid #ddd;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+#message-form input {
+  width: calc(100% - 90px);
+  padding: 10px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+#message-form button {
+  width: 70px;
+  padding: 10px;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#message-form button:hover {
+  background-color: #218838;
+}
+
+/* Mobile compatibility */
+@media screen and (max-width: 600px) {
+  #chat-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+
+  #username-container, #message-form {
+    padding: 10px;
+  }
+
+  #message-form input {
+    width: calc(100% - 80px);
+  }
+
+  #message-form button {
+    width: 60px;
+  }
+}
+
+  </style>
+</head>
+
+<body>
+  <div id="chat-container">
+    <div id="username-container">
+      <input type="text" id="username" placeholder="Enter your username" required>
+      <button onclick="setUsername()">Start Chatting</button>
+    </div>
+    <div id="messages-container" style="display:none;">
+      <div id="messages"></div>
+    </div>
+    <form id="message-form" style="display:none;">
+      <input type="text" id="message" placeholder="Type a message..." required>
+      <button type="submit">Send</button>
+    </form>
+  </div>
+
+  <script>
+    const API_URL = "/api/messages";
+    let username = "";
+  
+    function setUsername() {
+      username = document.getElementById("username").value.trim();
+      if (username === "") {
+        alert("Username cannot be empty");
+        return;
+      }
+      document.getElementById("username-container").style.display = "none";
+      document.getElementById("messages-container").style.display = "flex";
+      document.getElementById("message-form").style.display = "flex";
+      loadMessages();
+    }
+  
+    document.getElementById("message-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const message = document.getElementById("message").value.trim();
+  
+      if (message === "") {
+        alert("Message cannot be empty");
+        return;
+      }
+  
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, message }),
+        });
+        document.getElementById("message").value = "";
+        loadMessages();
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        alert("Failed to send message. Please try again.");
+      }
+    });
+  
+    async function loadMessages() {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const messages = await response.json();
+        const messagesCont = document.getElementById("messages");
+        const messagesContainer = document.getElementById("messages-container");
+        messagesCont.innerHTML = messages
+          .map((msg) => `
+            <div class="message ${msg.username === username ? "sent" : "received"}">
+              <p>${sanitizeHTML(msg.message)}</p>
+              <span>${sanitizeHTML(msg.username)}</span>
+            </div>
+          `)
+          .join("");
+          
+        // Scroll to the bottom of the messages container
+        setTimeout(() => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      }, 0);
+
+      } catch (error) {
+        console.error("Failed to load messages:", error);
+        alert("Failed to load messages. Please refresh the page.");
+      }
+    }
+  
+    function sanitizeHTML(str) {
+      const div = document.createElement("div");
+      div.innerText = str;
+      return div.innerHTML;
+    }
+  
+    setInterval(loadMessages, 3000);
+  </script>
+  
+</body>
+
+</html>
