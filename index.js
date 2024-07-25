@@ -4,7 +4,7 @@ const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const MESSAGES_FILE = path.join(__dirname, 'messages.json');
+const MESSAGES_FILE = path.join(__dirname, 'public/messages.json');
 
 // Middlewares
 app.use(express.json());
